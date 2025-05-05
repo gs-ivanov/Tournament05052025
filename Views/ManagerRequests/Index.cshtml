@@ -7,21 +7,10 @@
 
 <h2 class="mt-4">@ViewData["Title"]</h2>
 
-@*@if (TempData["Wizard"] != null)
-{
-    <div class="alert alert-success">@TempData["Wizard"]</div>
-    <span class="d-none">@TempData["Message"]=null</span>
-}
-@if (TempData["Message"] != null)
-{
-    <div class="alert alert-success">@TempData["Message"]</div>
-}*@
 
 <div class="btn-group mb-3" role="group">
     <a asp-action="Index" asp-route-status="Pending" class="btn btn-outline-primary @(currentStatus == "Pending" ? "active" : "")">Чакащи</a>
     <a asp-action="Index" asp-route-status="Approved" class="btn btn-outline-success @(currentStatus == "Approved" ? "active" : "")">Одобрени</a>
-@*     <a asp-action="Index" asp-route-status="Rejected" class="btn btn-outline-danger @(currentStatus == "Rejected" ? "active" : "")">Отхвърлени</a>
- *@    <a asp-action="Index" asp-route-status="ToPending" class="btn btn-outline-danger @(currentStatus == "ToPending" ? "active" : "")">Към чакащи</a>
 </div>
 
 <table class="table table-bordered table-hover">
@@ -48,14 +37,6 @@
                 <td>@request.CreatedOn.ToString("dd.MM.yyyy HH:mm")</td>
                 <td>@request.Status</td>
                 @if (currentStatus == "Pending")
-                {
-                    <td>
-                        <form asp-action="Approve" asp-route-id="@request.Id" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-success btn-sm">✅ Одобри</button>
-                        </form>
-                    </td>
-                }
-                @if (currentStatus == "Reject")
                 {
                     <td>
                         <form asp-action="Approve" asp-route-id="@request.Id" method="post" class="d-inline">

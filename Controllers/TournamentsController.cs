@@ -106,10 +106,10 @@
             // Променям текущия турнир
             tournament.Name = updated.Name;
             tournament.StartDate = updated.StartDate;
-            tournament.IsActive = updated.IsActive;
+            tournament.IsActive = true;// updated.IsActive;
 
             // Обвързваме логически: ако е активен → заявки = true, иначе false
-            tournament.IsOpenForApplications = updated.IsOpenForApplications;
+            tournament.IsOpenForApplications = true;// updated.IsOpenForApplications;
 
             // Ако активираме този турнир, всички останали стават неактивни и затворени
             if (updated.IsActive)
@@ -231,7 +231,7 @@
             try
             {
                 // 🟢 Генерираме нов график чрез MatchScheduler
-                var matches = _matchScheduler.GenerateSchedule(teams, tournament);
+                var matches = _matchScheduler.GenerateSchedule(teams, tournament,_context);
                 _context.Matches.AddRange(matches);
                 await _context.SaveChangesAsync();
             }
@@ -244,20 +244,6 @@
             TempData["Message"] = "✅ Новият график беше успешно генериран.";
             return RedirectToAction("Details", new { id = tournament.Id });
             //return RedirectToAction("Index", "Matches");
-        }
-
-        [HttpPost]
-        public IActionResult Test(int tournamentId)
-        {
-            try
-            {
-                TempData["uuu"] = 9999;
-            }
-            catch (Exception ex)
-            {
-                TempData["Message"] = ex.Message; return RedirectToAction("Error", new { id = tournamentId });
-            }
-            return View();
         }
 
         // 📄 File: Controllers/TournamentsController.cs

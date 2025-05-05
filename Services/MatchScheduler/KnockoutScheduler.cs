@@ -3,12 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Tournament.Data;
     using Tournament.Data.Models;
 
     // 📄 File: Services/MatchScheduler/KnockoutScheduler.cs
     public class KnockoutScheduler : IMatchGenerator
     {
-        public List<Match> Generate(List<Team> teams, Tournament tournament)
+        public List<Match> Generate(List<Team> teams, Tournament tournament,TurnirDbContext c=null)
         {
             if (!IsPowerOfTwo(teams.Count))
                 throw new InvalidOperationException("Knockout форматът изисква брой отбори, който е степен на 2 (напр. 4, 8, 16).");

@@ -4,10 +4,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Tournament.Data;
 
     public class GroupAndKnockoutScheduler : IMatchGenerator
     {
-        public List<Match> Generate(List<Team> teams, Tournament tournament)
+        public List<Match> Generate(List<Team> teams, Tournament tournament,TurnirDbContext c=null)
         {
             var matches = new List<Match>();
 

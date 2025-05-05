@@ -13,19 +13,28 @@
         {
                 this._dbContext = dbContext;
         }
-        public List<Match> GenerateSchedule(List<Team> teams, Tournament tournament)
+        public List<Match> GenerateSchedule(List<Team> teams, Tournament tournament, TurnirDbContext _context)
         {
             IMatchGenerator generator = tournament.Type switch
             {
                 TournamentType.RoundRobin => new RoundRobinScheduler(),
                 TournamentType.Knockout => new KnockoutScheduler(),
-                TournamentType.DoubleElimination =>new DoubleEliminationScheduler(this._dbContext),
+                TournamentType.DoubleElimination => new KnockoutScheduler(),  //DoubleEliminationScheduler(),
                 TournamentType.GroupAndKnockout => new GroupAndKnockoutScheduler(),
                 TournamentType.Swiss => new SwissScheduler(),
                 _ => throw new NotSupportedException("Типът турнир не се поддържа.")
-            };
-            //**
-            return generator.Generate(teams, tournament);
+            }; ; ;
+
+            if (TournamentType.DoubleElimination == tournament.Type)
+            {
+
+                return generator.Generate(teams, tournament, this._dbContext = null);
+            }
+            else
+            {
+                return generator.Generate(teams, tournament, this._dbContext = null);
+
+            }
         }
 
     }

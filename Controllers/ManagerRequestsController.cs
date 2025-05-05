@@ -50,12 +50,6 @@
         [HttpGet]
         public async Task<IActionResult> Index(string status = "Pending")
         {
-            if (status == "ToPending")
-            {
-                ViewData["CurrentStatus"] = status;
-                return RedirectToAction(nameof(RevertList));
-            }
-
             var query = _context.ManagerRequests
                     .Include(r => r.Team)
                     .Include(r => r.User)

@@ -6,63 +6,75 @@
     using Tournament.Data;
     using Tournament.Data.Models;
 
+    /// <summary>
+    /// Specifies the type of bracket for a round.
+    /// </summary>
     public enum BracketType
     {
         Winners,
         Losers,
         Championship
     }
-
-    public class RoundX
+    /// Represents a single tournament round with its matches.
+    /// </summary>
+    public class Round
     {
         public int Number { get; set; }
         public string Name { get; set; }
         public BracketType Bracket { get; set; }
         public List<Match> Matches { get; set; } = new List<Match>();
     }
-
+    /// Generates rounds for a double-elimination bracket without requiring DbContext injection.
+    /// </summary>
     public interface IMatchGeneratorDbl
     {
-        List<RoundX> Generate(List<Team> teams, Tournament tournament);
-        //List<Round> GenerateRounds(TurnirDbContext dbContext, List<Team> teams, Tournament tournament);
+        List<Round> Generate(List<Team> teams, Tournament tournament, TurnirDbContext dbContext);
     }
 
 
 
     public class DoubleEliminationScheduler : IMatchGenerator
     {
-                private readonly TurnirDbContext _context;
+        //private readonly TurnirDbContext _context;
 
-        public DoubleEliminationScheduler(TurnirDbContext dbContext)
+        //public DoubleEliminationScheduler(TurnirDbContext dbContext)
+        //{
+        //    this._context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        //}
+
+
+        public List<Round> Generate(List<Team> teams, Tournament tournament, TurnirDbContext dbContext)
         {
-            this._context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        }
+            // Clear existing matches for this tournament
+            var existing = dbContext.Matches.Where(m => m.TournamentId == tournament.Id);
+            dbContext.Matches.RemoveRange(existing);
+            dbContext.SaveChanges();
 
 
-        public List<Match> Generate(List<Team> teams, Tournament tournament)
-        {
+
+            if (teams == null || teams.Count < 2)
+                throw new ArgumentException("At least two teams are required.");
 
             if (!IsPowerOfTwo(teams.Count))
-                throw new InvalidOperationException("Double Elimination форматът изисква брой отбори, който е степен на 2 (напр. 4, 8, 16).");
+                throw new InvalidOperationException("Double Elimination requires the number of teams to be a power of two.");
             // Random seeding
             var rnd = new Random();
             teams = teams.OrderBy(t => rnd.Next()).ToList();
 
-            // Pad to next power of two
+            // Pad with null (byes) to power of two
             int size = 1;
             while (size < teams.Count) size <<= 1;
-            for (int i = teams.Count; i < size; i++)
-                teams.Add(null);  // bye
+            for (int i = teams.Count; i < size; i++) teams.Add(null);
 
-            var rounds = new List<Match>();
+            var rounds = new List<Round>();
             var winnersQueue = new Queue<Team>(teams);
-            int totalWBRounds = (int)Math.Log(size, 2);
             var losersQueue = new Queue<Team>();
+            int totalWBRounds = (int)Math.Log(size, 2);
 
-            // Winners bracket
+            // ===== Winners Bracket =====
             for (int r = 1; r <= totalWBRounds; r++)
             {
-                var round = new Match
+                var round = new Round
                 {
                     Number = r,
                     Bracket = BracketType.Winners,
@@ -72,19 +84,19 @@
                 var nextWinners = new List<Team>();
                 while (winnersQueue.Count >= 2)
                 {
-                    var a = winnersQueue.Dequeue();
-                    var b = winnersQueue.Dequeue();
+                    var teamA = winnersQueue.Dequeue();
+                    var teamB = winnersQueue.Dequeue();
                     var match = new Match
                     {
                         TournamentId = tournament.Id,
-                        TeamAId = (int)a?.Id,
-                        TeamBId = (int)b?.Id,
-                        Round = r,
-                        Bracket = BracketType.Winners,
+                        TeamAId = (int)teamA?.Id,
+                        TeamBId = (int)teamB?.Id,
+                        Round = round.Number,
+                        Bracket = round.Bracket,
                         PlayedOn = tournament.StartDate.AddDays((r - 1) * 2)
                     };
-                    _context.Matches.Add(match);
-                    _context.SaveChanges();
+                    dbContext.Matches.Add(match);
+                    dbContext.SaveChanges();
 
                     nextWinners.Add(match.WinnerTeam);
                     if (match.LoserTeam != null)
@@ -97,10 +109,10 @@
                 rounds.Add(round);
             }
 
-            // Losers bracket
+            // ===== Losers Bracket =====
             for (int r = 1; r <= totalWBRounds && losersQueue.Count > 1; r++)
             {
-                var round = new Match
+                var round = new Round
                 {
                     Number = totalWBRounds + r,
                     Bracket = BracketType.Losers,
@@ -110,19 +122,19 @@
                 var nextLosers = new List<Team>();
                 while (losersQueue.Count >= 2)
                 {
-                    var a = losersQueue.Dequeue();
-                    var b = losersQueue.Dequeue();
+                    var teamA = losersQueue.Dequeue();
+                    var teamB = losersQueue.Dequeue();
                     var match = new Match
                     {
                         TournamentId = tournament.Id,
-                        TeamAId = a.Id,
-                        TeamBId = b.Id,
+                        TeamAId = teamA.Id,
+                        TeamBId = teamB.Id,
                         Round = round.Number,
-                        Bracket = BracketType.Losers,
+                        Bracket = round.Bracket,
                         PlayedOn = tournament.StartDate.AddDays((round.Number - 1) * 2)
                     };
-                    _context.Matches.Add(match);
-                    _context.SaveChanges();
+                    dbContext.Matches.Add(match);
+                    dbContext.SaveChanges();
 
                     nextLosers.Add(match.WinnerTeam);
                     round.Matches.Add(match);
@@ -132,31 +144,36 @@
                 rounds.Add(round);
             }
 
-            // Championship
-            var champRound = new Match
+            // ===== Championship =====
+            var champRound = new Round
             {
                 Number = rounds.Max(r => r.Number) + 1,
                 Bracket = BracketType.Championship,
                 Name = "Championship"
             };
-            var wf = rounds.First(r => r.Bracket == BracketType.Winners && r.Name.Contains("Final")).Matches.First();
-            var lf = rounds.First(r => r.Bracket == BracketType.Losers && r.Name.Contains("Final")).Matches.First();
+            var winnersFinal = rounds.First(r => r.Bracket == BracketType.Winners && r.Matches.Any()).Matches.Last();
+            var losersFinal = rounds.First(r => r.Bracket == BracketType.Losers && r.Matches.Any()).Matches.Last();
             var finalMatch = new Match
             {
                 TournamentId = tournament.Id,
-                SourceMatchAId = wf.Id,
-                SourceMatchBId = lf.Id,
+                TeamAId = (int)winnersFinal.WinnerTeam?.Id,
+                TeamBId = (int)losersFinal.WinnerTeam?.Id,
                 Round = champRound.Number,
-                Bracket = BracketType.Championship,
+                Bracket = champRound.Bracket,
                 PlayedOn = tournament.StartDate.AddDays(totalWBRounds * 3)
             };
-            _context.Matches.Add(finalMatch);
-            _context.SaveChanges();
+            dbContext.Matches.Add(finalMatch);
+            dbContext.SaveChanges();
 
             champRound.Matches.Add(finalMatch);
             rounds.Add(champRound);
 
             return rounds;
+        }
+
+        List<Match> IMatchGenerator.Generate(List<Team> teams, Tournament tournament, TurnirDbContext c)
+        {
+            throw new NotImplementedException();
         }
 
         private bool IsPowerOfTwo(int number)

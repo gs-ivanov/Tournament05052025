@@ -45,11 +45,6 @@
         public int Round { get; set; } // Номер на кръга
         public Services.MatchScheduler.BracketType Bracket { get; set; } // "Winners" или "Losers"
 
-        public int Number { get; set; }
-        public string Name { get; set; }
-        public List<Match> Matches { get; set; } = new List<Match>();
-
-
         [NotMapped]
         public Team WinnerTeam
         {

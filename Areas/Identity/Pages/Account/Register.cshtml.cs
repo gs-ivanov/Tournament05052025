@@ -146,7 +146,7 @@
                 {
                     UserId = user.Id,
                     TeamId = team.Id,
-                    TournamentType = TournamentType.RoundRobin,
+                    TournamentType = tournament.Type,
                     TournamentId = tournament.Id,
                     JsonPayload = $"{{ \"email\": \"{user.Email}\" }}",
                     Status = RequestStatus.Pending,
