@@ -1,0 +1,24 @@
+@using Tournament.Data.Models;
+@using Tournament.Models
+@model  List<Tournament>
+
+ <h2>Стъпка 2: Данни за турнира, който ще се генерира.</h2>
+
+<form asp-action="Step2" method="post">
+    <div class="mb-3">
+        <label class="form-label">Тип на съществуващия турнир:  @Model[0].Type</label>
+        </br>
+        <label class="form-label">Име:  @Model[0].Name</label>
+        </br>
+        <label class="form-label">Начална дата:  @Model[0].StartDate</label>
+        </br>
+        <label class="form-label">За промяна - избери от менюто [Admin menu->Tournaments Edit/List]</label>
+    </div>
+
+    <button type="submit" class="btn btn-success">Запази и продължи</button>
+    <a asp-action="Step1" class="btn btn-secondary ms-2">Назад</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

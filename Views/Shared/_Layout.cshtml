@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Tournament</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-success border-bottom shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-white" asp-controller="Home" asp-action="Index">
+                    <img src="/logos/chernomore.png" alt="Logo" style="height: 40px;" />
+                    Tournament
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+@*                         <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="VerifyCode" asp-action="CheckTwilioConfig">Check Twilio Config</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="VerifyCode" asp-action="TestSms">Test Sms</a>
+                        </li>
+ *@                     <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Tournaments" asp-action="Details">График на мачовете</a>
+                        </li>
+@*                         
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Стани Мениджър</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" asp-controller="VerifyCode" asp-action="EnterCode">Платена такса-участие</a>
+                        </li>
+                        @if (User.IsInRole("Editor") && User.Identity.Name.ToLower() != "editor@tur.com")
+                        {
+                        }
+ *@                        @if (User.IsInRole("Administrator"))
+                        {
+@*                             <li class="nav-item">
+                                <a class="nav-link text-warning" asp-controller="ManagerRequests" asp-action="Index">Преглед и редактиране заявките за участие в турнир</a>
+                            </li>
+ *@                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-warning" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Админ меню
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" asp-controller="SetUp" asp-action="Step1">Setup Wizarf - Ресет и генериране на нов график</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Tournaments" asp-action="Index">Tournaments Edit/List</a></li>
+                                    <li><a class="dropdown-item" asp-controller="ManagerRequests" asp-action="Index">Преглед и редактиране заявките за участие в турнир</a></li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Tools" asp-action="Index">????? 🛠️ Админ инструменти</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-controller="Teams" asp-action="Index">Списък с отборите</a>
+                                    </li>
+
+@*                                     <li><a class="dropdown-item" asp-controller="AdminController" asp-action="ResetTeamsAndRequests">Reset Teams and ManagerRequests items: FeePaid, Status, IsApproved and FeePaid</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Matches" asp-action="Index">Spare</a></li>
+ *@                                </ul>
+                            </li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    @if (TempData["TournDetails"] != null)
+    {
+        <div class="alert alert-success">@TempData["TournDetails"]</div>
+        <span class="d-none">@TempData["TournDetails"]=null</span>
+    }
+    @if (TempData["Register"] != null)
+    {
+        <div class="alert alert-success">@TempData["Register"]</div>
+        <span class="d-none">@TempData["Register"]=null</span>
+    }
+
+    @if (TempData["VeriftCode"] != null)
+    {
+        <div class="alert alert-success">@TempData["VeriftCode"]</div>
+        <span class="d-none">@TempData["VeriftCode"]=null</span>
+    }
+    @if (TempData["NoDisplay"] != null)
+    {
+        <div class="alert alert-success">@TempData["NoDisplay"]</div>
+        <span class="d-none">@TempData["NoDisplay"]=null</span>
+    }
+    @if (TempData["Wizard"] != null)
+    {
+        <div class="alert alert-success">@TempData["Wizard"]</div>
+                <span class="d-none">@TempData["Wizard"]=null</span>}
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success text-center mb-0 rounded-0">
+            @TempData["Message"]
+        </div>}
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center mb-0 rounded-0">
+            @TempData["Error"]
+        </div>}
+    <div class="container mt-3">
+        @RenderBody()
+    </div>
+
+    <footer class="text-center text-muted mt-5 mb-3">
+        &copy; 2025 - Tournament
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+
+@*     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+ *@
+</body>
+</html>
